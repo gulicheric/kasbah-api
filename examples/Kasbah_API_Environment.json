@@ -1,0 +1,42 @@
+{
+  "id": "kasbah-api-environment",
+  "name": "Kasbah API Environment",
+  "values": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3001",
+      "description": "API base URL - change to production URL when deploying",
+      "type": "text",
+      "enabled": true
+    },
+    {
+      "key": "apiKey",
+      "value": "pk_live_abc123",
+      "description": "Your Kasbah API key",
+      "type": "text",
+      "enabled": true
+    },
+    {
+      "key": "KASBAH_API_SECRET",
+      "value": "sk_live_secret123",
+      "description": "Your Kasbah API secret for HMAC signature generation",
+      "type": "secret",
+      "enabled": true
+    },
+    {
+      "key": "testApiKey",
+      "value": "pk_test_xyz789",
+      "description": "Test API key for sandbox testing",
+      "type": "text",
+      "enabled": true
+    },
+    {
+      "key": "testSecret",
+      "value": "sk_test_secret789",
+      "description": "Test API secret for sandbox testing",
+      "type": "secret",
+      "enabled": true
+    }
+  ],
+  "_postman_variable_scope": "environment"
+}

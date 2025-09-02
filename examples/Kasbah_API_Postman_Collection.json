@@ -1,0 +1,552 @@
+{
+  "info": {
+    "name": "Kasbah Orders API",
+    "description": "Complete API collection for Kasbah partner integration with HMAC authentication",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "version": "1.0.0"
+  },
+  "auth": {
+    "type": "noauth"
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// HMAC Authentication Pre-request Script",
+          "if (pm.request.headers.get('Kasbah-Key')) {",
+          "  const apiKey = pm.request.headers.get('Kasbah-Key');",
+          "  const secret = pm.environment.get('KASBAH_API_SECRET') || pm.globals.get('KASBAH_API_SECRET');",
+          "  ",
+          "  if (!secret) {",
+          "    console.error('KASBAH_API_SECRET not found in environment or globals');",
+          "    return;",
+          "  }",
+          "  ",
+          "  const timestamp = Math.floor(Date.now() / 1000);",
+          "  const method = pm.request.method;",
+          "  const path = pm.request.url.getPath();",
+          "  const body = pm.request.body ? pm.request.body.raw || '' : '';",
+          "  ",
+          "  const payload = `${timestamp}\\n${method}\\n${path}\\n${body}`;",
+          "  ",
+          "  const signature = CryptoJS.HmacSHA256(payload, secret).toString();",
+          "  const signatureHeader = `t=${timestamp},s=${signature}`;",
+          "  ",
+          "  pm.request.headers.upsert({",
+          "    key: 'Kasbah-Signature',",
+          "    value: signatureHeader",
+          "  });",
+          "  ",
+          "  console.log('HMAC signature generated:', signatureHeader);",
+          "}"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3001",
+      "type": "string"
+    },
+    {
+      "key": "apiKey",
+      "value": "pk_live_abc123",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health Check",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Response has status ok', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.status).to.eql('ok');",
+              "});",
+              "",
+              "pm.test('Response has timestamp', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.timestamp).to.exist;",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/v1/ping",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "v1",
+            "ping"
+          ]
+        },
+        "description": "Public health check endpoint - no authentication required"
+      },
+      "response": []
+    },
+    {
+      "name": "List Orders",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Response has data array', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.data).to.be.an('array');",
+              "});",
+              "",
+              "pm.test('Response has pagination object', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.pagination).to.be.an('object');",
+              "    pm.expect(jsonData.pagination.limit).to.exist;",
+              "    pm.expect(jsonData.pagination.has_more).to.be.a('boolean');",
+              "});",
+              "",
+              "pm.test('Orders have required fields', function () {",
+              "    const jsonData = pm.response.json();",
+              "    if (jsonData.data.length > 0) {",
+              "        const order = jsonData.data[0];",
+              "        pm.expect(order.id).to.exist;",
+              "        pm.expect(order.number).to.exist;",
+              "        pm.expect(order.status).to.exist;",
+              "        pm.expect(order.customer).to.be.an('object');",
+              "        pm.expect(order.totals).to.be.an('object');",
+              "    }",
+              "});",
+              "",
+              "pm.test('Rate limit headers present', function () {",
+              "    pm.expect(pm.response.headers.get('X-RateLimit-Limit')).to.exist;",
+              "    pm.expect(pm.response.headers.get('X-RateLimit-Remaining')).to.exist;",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Kasbah-Key",
+            "value": "{{apiKey}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/v1/orders?limit=50",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "v1",
+            "orders"
+          ],
+          "query": [
+            {
+              "key": "limit",
+              "value": "50"
+            },
+            {
+              "key": "status",
+              "value": "FULFILLED",
+              "disabled": true
+            },
+            {
+              "key": "customer_id",
+              "value": "cust_7x2",
+              "disabled": true
+            },
+            {
+              "key": "created_at[gte]",
+              "value": "2025-07-01T00:00:00Z",
+              "disabled": true
+            }
+          ]
+        },
+        "description": "List orders with optional filtering and pagination. Requires authentication."
+      },
+      "response": []
+    },
+    {
+      "name": "Get Order Details",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Order has complete details', function () {",
+              "    const order = pm.response.json();",
+              "    pm.expect(order.id).to.exist;",
+              "    pm.expect(order.number).to.exist;",
+              "    pm.expect(order.created_at).to.exist;",
+              "    pm.expect(order.updated_at).to.exist;",
+              "    pm.expect(order.status).to.exist;",
+              "    pm.expect(order.customer).to.be.an('object');",
+              "    pm.expect(order.totals).to.be.an('object');",
+              "    pm.expect(order.shipping).to.be.an('object');",
+              "    pm.expect(order.metadata).to.be.an('object');",
+              "});",
+              "",
+              "pm.test('Customer has required fields', function () {",
+              "    const order = pm.response.json();",
+              "    pm.expect(order.customer.id).to.exist;",
+              "    pm.expect(order.customer.name).to.exist;",
+              "});",
+              "",
+              "pm.test('Totals have required fields', function () {",
+              "    const order = pm.response.json();",
+              "    pm.expect(order.totals.grand_total).to.be.a('number');",
+              "    pm.expect(order.totals.currency).to.exist;",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Kasbah-Key",
+            "value": "{{apiKey}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/v1/orders/ord_9aK3fQ",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "v1",
+            "orders",
+            "ord_9aK3fQ"
+          ]
+        },
+        "description": "Get detailed information for a specific order. Requires authentication."
+      },
+      "response": []
+    },
+    {
+      "name": "Get Order Items",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Response has data array', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.data).to.be.an('array');",
+              "});",
+              "",
+              "pm.test('Items have required fields', function () {",
+              "    const jsonData = pm.response.json();",
+              "    if (jsonData.data.length > 0) {",
+              "        const item = jsonData.data[0];",
+              "        pm.expect(item.item_id).to.exist;",
+              "        pm.expect(item.sku).to.exist;",
+              "        pm.expect(item.name).to.exist;",
+              "        pm.expect(item.quantity).to.be.a('number');",
+              "        pm.expect(item.unit_price).to.be.a('number');",
+              "        pm.expect(item.extended_price).to.be.a('number');",
+              "        pm.expect(item.uom).to.exist;",
+              "    }",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Kasbah-Key",
+            "value": "{{apiKey}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/v1/orders/ord_9aK3fQ/items",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "v1",
+            "orders",
+            "ord_9aK3fQ",
+            "items"
+          ]
+        },
+        "description": "Get line items for a specific order. Requires authentication."
+      },
+      "response": []
+    },
+    {
+      "name": "Get Order Events",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Response has data array', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.data).to.be.an('array');",
+              "});",
+              "",
+              "pm.test('Events have required fields', function () {",
+              "    const jsonData = pm.response.json();",
+              "    if (jsonData.data.length > 0) {",
+              "        const event = jsonData.data[0];",
+              "        pm.expect(event.id).to.exist;",
+              "        pm.expect(event.type).to.exist;",
+              "        pm.expect(event.status).to.exist;",
+              "        pm.expect(event.timestamp).to.exist;",
+              "        pm.expect(event.message).to.exist;",
+              "        pm.expect(event.metadata).to.be.an('object');",
+              "    }",
+              "});",
+              "",
+              "pm.test('Events are ordered by timestamp (desc)', function () {",
+              "    const jsonData = pm.response.json();",
+              "    if (jsonData.data.length > 1) {",
+              "        const first = new Date(jsonData.data[0].timestamp);",
+              "        const second = new Date(jsonData.data[1].timestamp);",
+              "        pm.expect(first >= second).to.be.true;",
+              "    }",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Kasbah-Key",
+            "value": "{{apiKey}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/v1/orders/ord_9aK3fQ/events",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "v1",
+            "orders",
+            "ord_9aK3fQ",
+            "events"
+          ]
+        },
+        "description": "Get status history and events for a specific order. Requires authentication."
+      },
+      "response": []
+    },
+    {
+      "name": "Filter Orders by Status",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('All orders have expected status', function () {",
+              "    const jsonData = pm.response.json();",
+              "    jsonData.data.forEach(order => {",
+              "        pm.expect(order.status).to.eql('FULFILLED');",
+              "    });",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Kasbah-Key",
+            "value": "{{apiKey}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/v1/orders?status=FULFILLED",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "v1",
+            "orders"
+          ],
+          "query": [
+            {
+              "key": "status",
+              "value": "FULFILLED"
+            }
+          ]
+        },
+        "description": "Example of filtering orders by status. Shows how to use query parameters."
+      },
+      "response": []
+    },
+    {
+      "name": "Test Invalid API Key",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 401', function () {",
+              "    pm.response.to.have.status(401);",
+              "});",
+              "",
+              "pm.test('Error response has correct structure', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.error).to.be.an('object');",
+              "    pm.expect(jsonData.error.type).to.eql('unauthorized');",
+              "    pm.expect(jsonData.error.message).to.exist;",
+              "    pm.expect(jsonData.error.doc_url).to.exist;",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Kasbah-Key",
+            "value": "pk_invalid_key",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/v1/orders",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "v1",
+            "orders"
+          ]
+        },
+        "description": "Test error handling with invalid API key. Should return 401 Unauthorized."
+      },
+      "response": []
+    },
+    {
+      "name": "Test Missing Authentication",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 401', function () {",
+              "    pm.response.to.have.status(401);",
+              "});",
+              "",
+              "pm.test('Error indicates missing authentication', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.error.message).to.include('Missing Kasbah-Key');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/v1/orders",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "v1",
+            "orders"
+          ]
+        },
+        "description": "Test error handling when no authentication headers are provided."
+      },
+      "response": []
+    },
+    {
+      "name": "Test Order Not Found",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 404', function () {",
+              "    pm.response.to.have.status(404);",
+              "});",
+              "",
+              "pm.test('Error response indicates not found', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.error.type).to.eql('not_found');",
+              "    pm.expect(jsonData.error.message).to.include('Order not found');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Kasbah-Key",
+            "value": "{{apiKey}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/v1/orders/ord_nonexistent",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "v1",
+            "orders",
+            "ord_nonexistent"
+          ]
+        },
+        "description": "Test 404 error handling for non-existent orders."
+      },
+      "response": []
+    }
+  ]
+}
