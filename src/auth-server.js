@@ -1,9 +1,13 @@
 require('dotenv').config();
 const express = require('express');
 const crypto = require('crypto');
+const { RealOrdersService } = require('./services/real-firestore');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
+
+// Initialize real Firestore service
+const ordersService = new RealOrdersService();
 
 // Body parsing with raw body capture for HMAC
 app.use((req, res, next) => {
@@ -178,10 +182,38 @@ app.get('/v1/ping', (req, res) => {
 });
 
 // Protected endpoints
-app.get('/v1/orders', authenticateRequest, addRateLimitHeaders, (req, res) => {
-  const { status, limit, customer_id } = req.query;
+app.get('/v1/orders', authenticateRequest, addRateLimitHeaders, async (req, res) => {
+  const { status, limit, customer_id, supplier_id } = req.query;
   
-  let mockOrders = [
+  try {
+    // If supplier_id is provided, get orders by supplier
+    if (supplier_id) {
+      const result = await ordersService.getOrdersBySupplierId(supplier_id, { status }, { limit: parseInt(limit) || 50 });
+      return res.json({
+        data: result.orders,
+        pagination: {
+          limit: result.limit,
+          has_more: result.hasMore,
+          next_cursor: result.nextCursor
+        }
+      });
+    }
+    
+    // If customer_id is provided, get orders by buyer
+    if (customer_id) {
+      const result = await ordersService.getOrdersByBuyerId(customer_id, { status }, { limit: parseInt(limit) || 50 });
+      return res.json({
+        data: result.orders,
+        pagination: {
+          limit: result.limit,
+          has_more: result.hasMore,
+          next_cursor: result.nextCursor
+        }
+      });
+    }
+    
+    // Fallback to mock data if no specific filters
+    let mockOrders = [
     {
       id: 'ord_9aK3fQ',
       number: 'KSB-102348',
@@ -282,6 +314,145 @@ app.get('/v1/orders', authenticateRequest, addRateLimitHeaders, (req, res) => {
       next_cursor: null
     }
   });
+  
+  } catch (error) {
+    console.error('Error fetching orders:', error);
+    return res.status(500).json({
+      error: {
+        type: 'internal',
+        message: 'Error fetching orders',
+        doc_url: 'https://developer.kasbah.health/docs/errors#internal',
+        request_id: req.id || 'unknown'
+      }
+    });
+  }
+});
+
+// New endpoint: Get orders by supplier ID
+app.get('/v1/suppliers/:supplier_id/orders', authenticateRequest, addRateLimitHeaders, async (req, res) => {
+  const { supplier_id } = req.params;
+  const { status, limit, cursor } = req.query;
+  
+  try {
+    const result = await ordersService.getOrdersBySupplierId(supplier_id, { status }, { 
+      limit: parseInt(limit) || 50, 
+      cursor 
+    });
+    
+    res.json({
+      data: result.orders,
+      pagination: {
+        limit: result.limit,
+        has_more: result.hasMore,
+        next_cursor: result.nextCursor
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching supplier orders:', error);
+    res.status(500).json({
+      error: {
+        type: 'internal',
+        message: 'Error fetching supplier orders',
+        doc_url: 'https://developer.kasbah.health/docs/errors#internal',
+        request_id: req.id || 'unknown'
+      }
+    });
+  }
+});
+
+// New endpoint: Get orders by buyer/customer ID
+app.get('/v1/customers/:customer_id/orders', authenticateRequest, addRateLimitHeaders, async (req, res) => {
+  const { customer_id } = req.params;
+  const { status, limit, cursor } = req.query;
+  
+  try {
+    const result = await ordersService.getOrdersByBuyerId(customer_id, { status }, { 
+      limit: parseInt(limit) || 50, 
+      cursor 
+    });
+    
+    res.json({
+      data: result.orders,
+      pagination: {
+        limit: result.limit,
+        has_more: result.hasMore,
+        next_cursor: result.nextCursor
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching customer orders:', error);
+    res.status(500).json({
+      error: {
+        type: 'internal',
+        message: 'Error fetching customer orders',
+        doc_url: 'https://developer.kasbah.health/docs/errors#internal',
+        request_id: req.id || 'unknown'
+      }
+    });
+  }
+});
+
+// New endpoint: Get user information
+app.get('/v1/users/:user_id', authenticateRequest, addRateLimitHeaders, async (req, res) => {
+  const { user_id } = req.params;
+  
+  try {
+    const user = await ordersService.getUser(user_id);
+    
+    if (!user) {
+      return res.status(404).json({
+        error: {
+          type: 'not_found',
+          message: 'User not found',
+          doc_url: 'https://developer.kasbah.health/docs/errors#not_found',
+          request_id: req.id || 'unknown'
+        }
+      });
+    }
+    
+    res.json(user);
+  } catch (error) {
+    console.error('Error fetching user:', error);
+    res.status(500).json({
+      error: {
+        type: 'internal',
+        message: 'Error fetching user information',
+        doc_url: 'https://developer.kasbah.health/docs/errors#internal',
+        request_id: req.id || 'unknown'
+      }
+    });
+  }
+});
+
+// New endpoint: Get products/inventory with 20-item limit
+app.get('/v1/products', authenticateRequest, addRateLimitHeaders, async (req, res) => {
+  const { category, supplier_id, limit, cursor } = req.query;
+  
+  try {
+    const result = await ordersService.getProducts({ category, supplier_id }, { 
+      limit: Math.min(parseInt(limit) || 20, 20), // Enforce 20-item max
+      cursor 
+    });
+    
+    res.json({
+      data: result.products,
+      pagination: {
+        limit: result.limit,
+        has_more: result.hasMore,
+        next_cursor: result.nextCursor
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching products:', error);
+    res.status(500).json({
+      error: {
+        type: 'internal',
+        message: 'Error fetching products',
+        doc_url: 'https://developer.kasbah.health/docs/errors#internal',
+        request_id: req.id || 'unknown'
+      }
+    });
+  }
 });
 
 app.get('/v1/orders/:order_id', authenticateRequest, addRateLimitHeaders, (req, res) => {
@@ -491,6 +662,10 @@ app.listen(PORT, () => {
   console.log(`🚀 Kasbah API server with authentication running on port ${PORT}`);
   console.log(`🏥 Health check: http://localhost:${PORT}/v1/ping`);
   console.log(`🔐 Protected orders: http://localhost:${PORT}/v1/orders (requires auth)`);
+  console.log(`👥 User info: http://localhost:${PORT}/v1/users/:user_id`);
+  console.log(`📦 Products: http://localhost:${PORT}/v1/products`);
+  console.log(`🏪 Supplier orders: http://localhost:${PORT}/v1/suppliers/:supplier_id/orders`);
+  console.log(`🛒 Customer orders: http://localhost:${PORT}/v1/customers/:customer_id/orders`);
   console.log('');
   console.log('📝 Test API Keys:');
   console.log('  Live: pk_live_abc123 (secret: sk_live_secret123)');
