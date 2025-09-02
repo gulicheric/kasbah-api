@@ -22,7 +22,7 @@ Kasbah-Signature: t=timestamp,s=signature_hash
 ```
 
 **Environment Variables to Set:**
-- `baseUrl`: API endpoint (e.g., `https://api.kasbah.health`)
+- `baseUrl`: API endpoint (`https://kasbah-api-production.up.railway.app`)
 - `apiKey`: Your public API key (e.g., `pk_live_abc123`)
 - `KASBAH_API_SECRET`: Your secret key (e.g., `sk_live_secret123`)
 

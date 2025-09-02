@@ -4,8 +4,8 @@
   "values": [
     {
       "key": "baseUrl",
-      "value": "http://localhost:3001",
-      "description": "API base URL - change to production URL when deploying",
+      "value": "https://kasbah-api-production.up.railway.app",
+      "description": "Production API base URL",
       "type": "text",
       "enabled": true
     },

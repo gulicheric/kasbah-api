@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kasbah Orders API Documentation</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #f8fafc;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 3rem 0;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        .nav {
+            background: white;
+            padding: 1rem 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .nav ul {
+            list-style: none;
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+        }
+        
+        .nav a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.3s;
+        }
+        
+        .nav a:hover {
+            color: #764ba2;
+        }
+        
+        .main {
+            padding: 3rem 0;
+        }
+        
+        .section {
+            background: white;
+            margin-bottom: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            overflow: hidden;
+        }
+        
+        .section-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1.5rem 2rem;
+        }
+        
+        .section-header h2 {
+            font-size: 1.5rem;
+        }
+        
+        .section-content {
+            padding: 2rem;
+        }
+        
+        .card {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .card h3 {
+            color: #667eea;
+            margin-bottom: 0.5rem;
+        }
+        
+        .endpoint {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+        
+        .endpoint-header {
+            background: #f8fafc;
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .method {
+            background: #10b981;
+            color: white;
+            padding: 0.3rem 0.8rem;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 0.8rem;
+        }
+        
+        .method.post { background: #3b82f6; }
+        .method.put { background: #f59e0b; }
+        .method.delete { background: #ef4444; }
+        
+        .endpoint-path {
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-weight: bold;
+        }
+        
+        .endpoint-content {
+            padding: 1.5rem;
+        }
+        
+        .code-block {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 1.5rem;
+            border-radius: 8px;
+            font-family: 'Monaco', 'Courier New', monospace;
+            overflow-x: auto;
+            margin: 1rem 0;
+        }
+        
+        .highlight {
+            background: #fef3c7;
+            padding: 1rem 1.5rem;
+            border-left: 4px solid #f59e0b;
+            border-radius: 0 8px 8px 0;
+            margin: 1rem 0;
+        }
+        
+        .success {
+            background: #dcfce7;
+            border-left-color: #10b981;
+        }
+        
+        .warning {
+            background: #fef3c7;
+            border-left-color: #f59e0b;
+        }
+        
+        .error {
+            background: #fee2e2;
+            border-left-color: #ef4444;
+        }
+        
+        .btn {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 0.8rem 2rem;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: transform 0.2s;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .btn-outline {
+            background: transparent;
+            border: 2px solid #667eea;
+            color: #667eea;
+        }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+        
+        .footer {
+            background: #1e293b;
+            color: white;
+            padding: 2rem 0;
+            text-align: center;
+            margin-top: 4rem;
+        }
+        
+        @media (max-width: 768px) {
+            .header h1 { font-size: 2rem; }
+            .nav ul { flex-direction: column; gap: 1rem; }
+            .endpoint-header { flex-direction: column; align-items: flex-start; }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <h1>Kasbah Orders API</h1>
+            <p>Partner Integration Documentation</p>
+        </div>
+    </header>
+
+    <nav class="nav">
+        <div class="container">
+            <ul>
+                <li><a href="#overview">Overview</a></li>
+                <li><a href="#authentication">Authentication</a></li>
+                <li><a href="#endpoints">Endpoints</a></li>
+                <li><a href="#testing">Testing</a></li>
+                <li><a href="#examples">Examples</a></li>
+                <li><a href="#support">Support</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="main">
+        <div class="container">
+            
+            <!-- Overview Section -->
+            <section id="overview" class="section">
+                <div class="section-header">
+                    <h2>🚀 API Overview</h2>
+                </div>
+                <div class="section-content">
+                    <p>The Kasbah Orders API provides secure, real-time access to order data, tracking information, and status updates. Built with enterprise-grade security and designed for seamless partner integration.</p>
+                    
+                    <div class="grid">
+                        <div class="card">
+                            <h3>🔐 Secure Authentication</h3>
+                            <p>HMAC-SHA256 request signing prevents tampering and ensures data integrity.</p>
+                        </div>
+                        <div class="card">
+                            <h3>📊 Comprehensive Data</h3>
+                            <p>Access orders, line items, tracking info, and complete status history.</p>
+                        </div>
+                        <div class="card">
+                            <h3>⚡ High Performance</h3>
+                            <p>Built for scale with cursor pagination and intelligent caching.</p>
+                        </div>
+                        <div class="card">
+                            <h3>🛠️ Developer Friendly</h3>
+                            <p>Complete Postman collection, SDKs, and detailed documentation.</p>
+                        </div>
+                    </div>
+
+                    <div class="highlight success">
+                        <strong>🎯 Base URL:</strong> <code>https://kasbah-api-production.up.railway.app</code><br>
+                        <strong>📋 Version:</strong> v1<br>
+                        <strong>📄 Format:</strong> JSON<br>
+                        <strong>🔒 Security:</strong> HTTPS + HMAC Authentication
+                    </div>
+                </div>
+            </section>
+
+            <!-- Authentication Section -->
+            <section id="authentication" class="section">
+                <div class="section-header">
+                    <h2>🔐 Authentication</h2>
+                </div>
+                <div class="section-content">
+                    <p>All API requests (except health checks) require HMAC-SHA256 authentication to ensure security and prevent tampering.</p>
+
+                    <h3>Required Headers</h3>
+                    <div class="code-block">Kasbah-Key: pk_live_your_api_key_here
+Kasbah-Signature: t=1234567890,s=abc123def456...</div>
+
+                    <h3>Signature Generation</h3>
+                    <p>Generate the signature using this payload format:</p>
+                    <div class="code-block">timestamp + "\n" + method + "\n" + path + "\n" + body</div>
+
+                    <h3>Example (Node.js)</h3>
+                    <div class="code-block">const crypto = require('crypto');
+
+function generateSignature(method, path, body, secret) {
+  const timestamp = Math.floor(Date.now() / 1000);
+  const payload = `${timestamp}\n${method}\n${path}\n${body}`;
+  
+  const signature = crypto
+    .createHmac('sha256', secret)
+    .update(payload, 'utf8')
+    .digest('hex');
+  
+  return `t=${timestamp},s=${signature}`;
+}</div>
+
+                    <div class="highlight warning">
+                        <strong>⚠️ Important:</strong> Signatures are only valid for 5 minutes to prevent replay attacks.
+                    </div>
+                </div>
+            </section>
+
+            <!-- Endpoints Section -->
+            <section id="endpoints" class="section">
+                <div class="section-header">
+                    <h2>📋 API Endpoints</h2>
+                </div>
+                <div class="section-content">
+                    
+                    <!-- Health Check -->
+                    <div class="endpoint">
+                        <div class="endpoint-header">
+                            <span class="method">GET</span>
+                            <span class="endpoint-path">/v1/ping</span>
+                            <span>Health Check</span>
+                        </div>
+                        <div class="endpoint-content">
+                            <p><strong>Description:</strong> Public endpoint to verify API availability</p>
+                            <p><strong>Authentication:</strong> None required</p>
+                            <div class="code-block">curl https://kasbah-api-production.up.railway.app/v1/ping</div>
+                            <p><strong>Response:</strong></p>
+                            <div class="code-block">{
+  "status": "ok",
+  "timestamp": "2025-01-01T12:00:00Z",
+  "version": "1.0.0"
+}</div>
+                        </div>
+                    </div>
+
+                    <!-- List Orders -->
+                    <div class="endpoint">
+                        <div class="endpoint-header">
+                            <span class="method">GET</span>
+                            <span class="endpoint-path">/v1/orders</span>
+                            <span>List Orders</span>
+                        </div>
+                        <div class="endpoint-content">
+                            <p><strong>Description:</strong> Retrieve orders with filtering and pagination</p>
+                            <p><strong>Authentication:</strong> Required</p>
+                            
+                            <h4>Query Parameters</h4>
+                            <ul style="margin-left: 2rem; margin-bottom: 1rem;">
+                                <li><code>status</code> - Filter by order status (PENDING, APPROVED, FULFILLED, CANCELLED)</li>
+                                <li><code>customer_id</code> - Filter by customer ID</li>
+                                <li><code>supplier_id</code> - Filter by supplier ID</li>
+                                <li><code>created_at[gte]</code> - Orders created after date (ISO-8601)</li>
+                                <li><code>created_at[lte]</code> - Orders created before date (ISO-8601)</li>
+                                <li><code>limit</code> - Results per page (1-200, default: 50)</li>
+                                <li><code>cursor</code> - Pagination cursor</li>
+                            </ul>
+
+                            <div class="code-block">GET /v1/orders?status=FULFILLED&limit=25</div>
+                        </div>
+                    </div>
+
+                    <!-- Get Order -->
+                    <div class="endpoint">
+                        <div class="endpoint-header">
+                            <span class="method">GET</span>
+                            <span class="endpoint-path">/v1/orders/{order_id}</span>
+                            <span>Get Order Details</span>
+                        </div>
+                        <div class="endpoint-content">
+                            <p><strong>Description:</strong> Get complete details for a specific order</p>
+                            <p><strong>Authentication:</strong> Required</p>
+                            <div class="code-block">GET /v1/orders/ord_9aK3fQ</div>
+                        </div>
+                    </div>
+
+                    <!-- Order Items -->
+                    <div class="endpoint">
+                        <div class="endpoint-header">
+                            <span class="method">GET</span>
+                            <span class="endpoint-path">/v1/orders/{order_id}/items</span>
+                            <span>Get Order Items</span>
+                        </div>
+                        <div class="endpoint-content">
+                            <p><strong>Description:</strong> Get line items for a specific order</p>
+                            <p><strong>Authentication:</strong> Required</p>
+                            <div class="code-block">GET /v1/orders/ord_9aK3fQ/items</div>
+                        </div>
+                    </div>
+
+                    <!-- Order Events -->
+                    <div class="endpoint">
+                        <div class="endpoint-header">
+                            <span class="method">GET</span>
+                            <span class="endpoint-path">/v1/orders/{order_id}/events</span>
+                            <span>Get Order History</span>
+                        </div>
+                        <div class="endpoint-content">
+                            <p><strong>Description:</strong> Get status history and events for an order</p>
+                            <p><strong>Authentication:</strong> Required</p>
+                            <div class="code-block">GET /v1/orders/ord_9aK3fQ/events</div>
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+
+            <!-- Testing Section -->
+            <section id="testing" class="section">
+                <div class="section-header">
+                    <h2>🧪 Testing Your Integration</h2>
+                </div>
+                <div class="section-content">
+                    <div class="grid">
+                        <div class="card">
+                            <h3>📦 Postman Collection</h3>
+                            <p>Complete collection with automatic HMAC signing</p>
+                            <a href="../examples/Kasbah_API_Postman_Collection.json" class="btn" download>Download Collection</a>
+                        </div>
+                        <div class="card">
+                            <h3>🌍 Environment File</h3>
+                            <p>Pre-configured environment variables</p>
+                            <a href="../examples/Kasbah_API_Environment.json" class="btn btn-outline" download>Download Environment</a>
+                        </div>
+                    </div>
+
+                    <h3>Quick Test Steps</h3>
+                    <ol style="margin-left: 2rem; line-height: 2;">
+                        <li>Import both files into Postman</li>
+                        <li>Update environment with your API credentials</li>
+                        <li>Run "Health Check" to verify connectivity</li>
+                        <li>Test "List Orders" with authentication</li>
+                        <li>Explore other endpoints</li>
+                    </ol>
+
+                    <div class="highlight">
+                        <strong>🔑 Test Credentials:</strong><br>
+                        API Key: <code>pk_live_abc123</code><br>
+                        Secret: <code>sk_live_secret123</code>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Examples Section -->
+            <section id="examples" class="section">
+                <div class="section-header">
+                    <h2>💡 Integration Examples</h2>
+                </div>
+                <div class="section-content">
+                    
+                    <h3>Sample Order Response</h3>
+                    <div class="code-block">{
+  "id": "ord_9aK3fQ",
+  "number": "KSB-102348",
+  "created_at": "2025-07-29T14:32:10Z",
+  "status": "FULFILLED",
+  "customer": {
+    "id": "cust_7x2",
+    "name": "Elmwood Family Clinic"
+  },
+  "totals": {
+    "subtotal": 412.50,
+    "shipping": 18.00,
+    "tax": 34.33,
+    "grand_total": 464.83,
+    "currency": "USD"
+  },
+  "shipping": {
+    "method": "UPS_GROUND",
+    "tracking": [{
+      "carrier": "UPS",
+      "tracking_number": "1Z999AA1234567890",
+      "status": "DELIVERED"
+    }]
+  }
+}</div>
+
+                    <h3>Common Use Cases</h3>
+                    <div class="grid">
+                        <div class="card">
+                            <h3>Order Sync</h3>
+                            <p>Periodically fetch new/updated orders</p>
+                            <div class="code-block" style="font-size: 0.8rem;">GET /v1/orders?updated_at[gte]=2025-01-01T00:00:00Z</div>
+                        </div>
+                        <div class="card">
+                            <h3>Customer Orders</h3>
+                            <p>Get all orders for a specific customer</p>
+                            <div class="code-block" style="font-size: 0.8rem;">GET /v1/orders?customer_id=cust_7x2</div>
+                        </div>
+                        <div class="card">
+                            <h3>Fulfillment Tracking</h3>
+                            <p>Monitor order fulfillment status</p>
+                            <div class="code-block" style="font-size: 0.8rem;">GET /v1/orders?status=FULFILLED</div>
+                        </div>
+                        <div class="card">
+                            <h3>Order Details</h3>
+                            <p>Get complete order with items & events</p>
+                            <div class="code-block" style="font-size: 0.8rem;">GET /v1/orders/{id}<br>GET /v1/orders/{id}/items</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Support Section -->
+            <section id="support" class="section">
+                <div class="section-header">
+                    <h2>📞 Support & Resources</h2>
+                </div>
+                <div class="section-content">
+                    <div class="grid">
+                        <div class="card">
+                            <h3>📧 Email Support</h3>
+                            <p>Get help with integration questions</p>
+                            <a href="mailto:api@kasbah.health" class="btn">api@kasbah.health</a>
+                        </div>
+                        <div class="card">
+                            <h3>📚 Documentation</h3>
+                            <p>Complete integration guide</p>
+                            <a href="../examples/README.md" class="btn btn-outline">View Guide</a>
+                        </div>
+                        <div class="card">
+                            <h3>🏥 Health Status</h3>
+                            <p>Monitor API uptime and performance</p>
+                            <a href="https://status.kasbah.health" class="btn btn-outline">Status Page</a>
+                        </div>
+                        <div class="card">
+                            <h3>🔧 Rate Limits</h3>
+                            <p>600 requests/minute burst<br>50 requests/second sustained</p>
+                        </div>
+                    </div>
+
+                    <div class="highlight">
+                        <strong>🚀 Ready to integrate?</strong> Download the Postman collection and start testing your integration today!
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2025 Kasbah Health Technologies. Built for seamless partner integration.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Smooth scrolling for navigation links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+    </script>
+</body>
+</html>
