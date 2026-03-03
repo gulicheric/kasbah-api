@@ -11,30 +11,30 @@
     },
     {
       "key": "apiKey",
-      "value": "pk_live_abc123",
-      "description": "Your Kasbah API key",
+      "value": "sk_your_api_key_here",
+      "description": "Your Kasbah API key (send as Kasbah-Key header)",
       "type": "text",
       "enabled": true
     },
     {
-      "key": "KASBAH_API_SECRET",
-      "value": "sk_live_secret123",
-      "description": "Your Kasbah API secret for HMAC signature generation",
-      "type": "secret",
-      "enabled": true
-    },
-    {
-      "key": "testApiKey",
-      "value": "pk_test_xyz789",
-      "description": "Test API key for sandbox testing",
+      "key": "customerId",
+      "value": "Bzuz0jKe63QU6Jso3TgWnmrEeZl2",
+      "description": "Customer ID for Eric's Urgent Care",
       "type": "text",
       "enabled": true
     },
     {
-      "key": "testSecret",
-      "value": "sk_test_secret789",
-      "description": "Test API secret for sandbox testing",
-      "type": "secret",
+      "key": "supplierIdSLS",
+      "value": "gKjztAPj6vXaQde6NdektCmDdyZ2",
+      "description": "Supplier ID for SLS (medical supplies)",
+      "type": "text",
+      "enabled": true
+    },
+    {
+      "key": "supplierIdTop",
+      "value": "Ko17o5hoPwdSVhZvooA6C8lUSG63",
+      "description": "Supplier ID for Top Supplier Co (latex exam gloves)",
+      "type": "text",
       "enabled": true
     }
   ],

@@ -8,43 +8,6 @@
   "auth": {
     "type": "noauth"
   },
-  "event": [
-    {
-      "listen": "prerequest",
-      "script": {
-        "type": "text/javascript",
-        "exec": [
-          "// HMAC Authentication Pre-request Script",
-          "if (pm.request.headers.get('Kasbah-Key')) {",
-          "  const apiKey = pm.request.headers.get('Kasbah-Key');",
-          "  const secret = pm.environment.get('KASBAH_API_SECRET') || pm.globals.get('KASBAH_API_SECRET');",
-          "  ",
-          "  if (!secret) {",
-          "    console.error('KASBAH_API_SECRET not found in environment or globals');",
-          "    return;",
-          "  }",
-          "  ",
-          "  const timestamp = Math.floor(Date.now() / 1000);",
-          "  const method = pm.request.method;",
-          "  const path = pm.request.url.getPath();",
-          "  const body = pm.request.body ? pm.request.body.raw || '' : '';",
-          "  ",
-          "  const payload = `${timestamp}\\n${method}\\n${path}\\n${body}`;",
-          "  ",
-          "  const signature = CryptoJS.HmacSHA256(payload, secret).toString();",
-          "  const signatureHeader = `t=${timestamp},s=${signature}`;",
-          "  ",
-          "  pm.request.headers.upsert({",
-          "    key: 'Kasbah-Signature',",
-          "    value: signatureHeader",
-          "  });",
-          "  ",
-          "  console.log('HMAC signature generated:', signatureHeader);",
-          "}"
-        ]
-      }
-    }
-  ],
   "variable": [
     {
       "key": "baseUrl",
@@ -53,7 +16,7 @@
     },
     {
       "key": "apiKey",
-      "value": "pk_live_abc123",
+      "value": "sk_your_api_key_here",
       "type": "string"
     }
   ],
@@ -545,6 +508,323 @@
           ]
         },
         "description": "Test 404 error handling for non-existent orders."
+      },
+      "response": []
+    },
+    {
+      "name": "Orders by Customer (Eric's Urgent Care)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Kasbah-Key",
+            "value": "{{apiKey}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/v1/orders",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "v1",
+            "orders"
+          ],
+          "query": [
+            {
+              "key": "customer_id",
+              "value": "{{customerId}}"
+            },
+            {
+              "key": "limit",
+              "value": "25"
+            }
+          ]
+        },
+        "description": "List orders for a customer with pagination"
+      },
+      "response": []
+    },
+    {
+      "name": "Orders by Supplier (SLS)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Kasbah-Key",
+            "value": "{{apiKey}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/v1/suppliers/{{supplierIdSLS}}/orders",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "v1",
+            "suppliers",
+            "{{supplierIdSLS}}",
+            "orders"
+          ],
+          "query": [
+            {
+              "key": "limit",
+              "value": "25"
+            }
+          ]
+        },
+        "description": "List orders for SLS supplier"
+      },
+      "response": []
+    },
+    {
+      "name": "Orders by Supplier (Top Supplier Co)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Kasbah-Key",
+            "value": "{{apiKey}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/v1/suppliers/{{supplierIdTop}}/orders",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "v1",
+            "suppliers",
+            "{{supplierIdTop}}",
+            "orders"
+          ],
+          "query": [
+            {
+              "key": "limit",
+              "value": "25"
+            }
+          ]
+        },
+        "description": "List orders for Top Supplier Co"
+      },
+      "response": []
+    },
+    {
+      "name": "Products by Supplier (SLS)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Kasbah-Key",
+            "value": "{{apiKey}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/v1/products",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "v1",
+            "products"
+          ],
+          "query": [
+            {
+              "key": "supplier_id",
+              "value": "{{supplierIdSLS}}"
+            },
+            {
+              "key": "limit",
+              "value": "20"
+            }
+          ]
+        },
+        "description": "List products for SLS (max 20)"
+      },
+      "response": []
+    },
+    {
+      "name": "Acknowledge Order",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Kasbah-Key",
+            "value": "{{apiKey}}",
+            "type": "text"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "ack-{{customerId}}-1"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/v1/orders/{{orderId}}/acknowledge",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "v1",
+            "orders",
+            "{{orderId}}",
+            "acknowledge"
+          ]
+        },
+        "description": "Acknowledge an order",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"acknowledged_at\": \"2025-09-02T00:00:00Z\",\n  \"contact\": \"warehouse@partner.com\",\n  \"notes\": \"Received\"\n}"
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Create Shipment",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Kasbah-Key",
+            "value": "{{apiKey}}",
+            "type": "text"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "ship-{{customerId}}-1"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/v1/orders/{{orderId}}/shipments",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "v1",
+            "orders",
+            "{{orderId}}",
+            "shipments"
+          ]
+        },
+        "description": "Create shipment",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"carrier\": \"UPS\",\n  \"tracking_number\": \"1Z999AA1234567890\",\n  \"status\": \"shipped\",\n  \"shipped_at\": \"2025-09-02T01:00:00Z\",\n  \"items\": [{\"item_id\": \"it_1\", \"quantity\": 1}]\n}"
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Shipment Event",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Kasbah-Key",
+            "value": "{{apiKey}}",
+            "type": "text"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "ship-evt-{{customerId}}-1"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/v1/orders/{{orderId}}/shipments/{{shipmentId}}/events",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "v1",
+            "orders",
+            "{{orderId}}",
+            "shipments",
+            "{{shipmentId}}",
+            "events"
+          ]
+        },
+        "description": "Append shipment event",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"type\": \"shipment.in_transit\",\n  \"status\": \"in_transit\",\n  \"message\": \"Departed facility\",\n  \"timestamp\": \"2025-09-02T03:00:00Z\"\n}"
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Inventory Upsert",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Kasbah-Key",
+            "value": "{{apiKey}}",
+            "type": "text"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "inv-{{supplierIdSLS}}-1"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/v1/suppliers/{{supplierIdSLS}}/inventory",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "v1",
+            "suppliers",
+            "{{supplierIdSLS}}",
+            "inventory"
+          ]
+        },
+        "description": "Batch upsert inventory",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"items\": [\n    {\"sku\": \"SOME-SKU-1\", \"available\": true, \"quantity\": 25},\n    {\"sku\": \"SOME-SKU-2\", \"available\": false, \"quantity\": 0}\n  ]\n}"
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Orders by Customer (Page 2)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Kasbah-Key",
+            "value": "{{apiKey}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/v1/orders?customer_id={{customerId}}&limit=1&cursor={{nextCursor}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "v1",
+            "orders"
+          ],
+          "query": [
+            {
+              "key": "customer_id",
+              "value": "{{customerId}}"
+            },
+            {
+              "key": "limit",
+              "value": "1"
+            },
+            {
+              "key": "cursor",
+              "value": "{{nextCursor}}"
+            }
+          ]
+        },
+        "description": "Second page using next_cursor from previous response"
       },
       "response": []
     }

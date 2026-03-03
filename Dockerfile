@@ -1,5 +1,5 @@
 # Use the official Node.js runtime as a parent image
-FROM node:18-slim
+FROM node:20-slim
 
 # Set the working directory in the container
 WORKDIR /app
@@ -20,4 +20,4 @@ EXPOSE 3001
 ENV NODE_ENV=production
 
 # Define the command to run the application
-CMD ["node", "src/auth-server.js"]
+CMD ["node", "src/index.js"]

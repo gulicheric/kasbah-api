@@ -5,7 +5,7 @@
     "buildCommand": "npm ci"
   },
   "deploy": {
-    "startCommand": "node src/auth-server.js",
+    "startCommand": "node src/index.js",
     "healthcheckPath": "/v1/ping",
     "healthcheckTimeout": 300
   }
